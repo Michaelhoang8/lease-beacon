@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lease Beacon</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header>
+      <a href="/">◉ LEASE BEACON</a><span>COORDINATION / LOCAL LAB</span
+      ><button id="export">Export evidence ↗</button>
+    </header>
+    <main>
+      <section class="intro">
+        <h1>One owner.<br /><span>No late arrivals.</span></h1>
+        <p>
+          A lease expires. Its token never returns.<br />Watch a delayed writer
+          meet the fence.
+        </p>
+      </section>
+      <section class="resource-bar">
+        <label>Resource<select id="resources"></select></label
+        ><button id="refresh">Refresh state</button>
+        <form id="create-form">
+          <label
+            >New resource<input
+              id="resource-id"
+              value="field-notes"
+              maxlength="48"
+              required
+              pattern="[A-Za-z0-9][A-Za-z0-9_.-]{0,47}" /></label
+          ><button>Create / open</button>
+        </form>
+      </section>
+      <section class="authority">
+        <div class="beacon">
+          <span></span>
+          <p id="lease-state">NO RESOURCE</p>
+        </div>
+        <div><small>CURRENT FENCE</small><strong id="fence">0</strong></div>
+        <div><small>LEASE HOLDER</small><strong id="holder">—</strong></div>
+        <div>
+          <small>TIME REMAINING*</small><strong id="remaining">—</strong>
+        </div>
+        <div>
+          <small>DOCUMENT VERSION</small><strong id="version">0</strong>
+        </div>
+        <div class="document">
+          <small>PROTECTED DOCUMENT</small>
+          <pre id="document">Create a resource to begin.</pre>
+        </div>
+      </section>
+      <p class="clock-note">
+        * Countdown is a browser estimate since the last server snapshot. The
+        server checks the lease again inside every command transaction.
+      </p>
+      <div id="clients" class="clients"></div>
+      <p id="status" role="status"></p>
+      <p id="error" role="alert"></p>
+      <section class="ledger">
+        <div class="section-head">
+          <div>
+            <small>THE DURABLE RECORD</small>
+            <h2>Every attempt leaves a receipt.</h2>
+          </div>
+          <span id="audit"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th>Command</th>
+                <th>Result</th>
+                <th>Fence</th>
+                <th>Version</th>
+                <th>Inspect</th>
+              </tr>
+            </thead>
+            <tbody id="history"></tbody>
+          </table>
+        </div>
+        <p id="history-note"></p>
+        <details>
+          <summary>Selected receipt</summary>
+          <pre id="receipt"></pre>
+        </details>
+        <details>
+          <summary>Try a delayed writer</summary>
+          <ol>
+            <li>
+              Acquire a 1-second lease as Client A. Capture a write while
+              holding its token.
+            </li>
+            <li>
+              After the countdown expires, acquire as Client B. B receives a
+              higher token.
+            </li>
+            <li>
+              Write a new document as B, then deliver A's captured write. The
+              server rejects A's stale token.
+            </li>
+            <li>
+              Retry the last command: it returns the original receipt, including
+              any denial, without executing again.
+            </li>
+          </ol>
+          <p>
+            Tokens and captured writes in the client panels are intentionally
+            retained after expiry. Refreshing server state does not renew a
+            lease or update a client's expected document version.
+          </p>
+        </details>
+        <details>
+          <summary>Model and limits</summary>
+          <p>
+            This local SQLite service places lease issuance and protected writes
+            in the same transaction boundary. It demonstrates fencing and
+            optimistic concurrency, not a fault-tolerant distributed lock
+            service. Holder names are labels, not authenticated identities; keep
+            it on loopback and use fictional text.
+          </p>
+          <p>
+            Expiry uses server wall time with a persisted high-water mark.
+            Backward clock changes cannot revive an observed expired lease, but
+            can delay time progress until the wall clock catches up. Forward
+            jumps can expire leases early. A new grant always increases the
+            resource's fence. Renew never shortens a lease.
+          </p>
+          <p>
+            Receipts are immutable and hash-linked. Retrying a request key
+            returns the original receipt even after expiry; it does not grant a
+            fresh lease. Reusing a key for a changed command is a conflict.
+            Database owners can rewrite history; checksums are not signatures.
+          </p>
+        </details>
+      </section>
+    </main>
+    <footer>
+      Lease Beacon / Fence the write, not just the intention.<span
+        >SQLite · real HTTP · no external services</span
+      >
+    </footer>
+  </body>
+</html>
