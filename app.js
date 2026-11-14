@@ -30,7 +30,8 @@ async function api(path, body) {
 function clientUI(c) {
   const section = document.createElement("section");
   section.className = "client";
-  section.innerHTML = `<div class="client-head"><h2>Client ${c.holder}</h2><span class="token" id="token-${c.holder}">NO TOKEN</span></div><div class="lease-actions"><label>Lease<select id="ttl-${c.holder}"><option value="1000">1 second</option><option value="5000" selected>5 seconds</option><option value="15000">15 seconds</option><option value="60000">60 seconds</option></select></label><button data-action="acquire">Acquire</button><button data-action="renew">Renew</button><button data-action="release">Release</button></div><textarea id="value-${c.holder}" aria-label="Client ${c.holder} document value" maxlength="2048">A note from Client ${c.holder}.</textarea><div class="version-controls"><label>Expected version<input id="expected-${c.holder}" type="number" min="0" max="1000000000" value="0" aria-label="Client ${c.holder} expected version"></label><button data-action="sync">Use current version</button></div><div class="write-actions"><button data-action="write">Write now</button><button data-action="capture">Capture delayed write</button><button data-action="deliver">Deliver captured</button></div><div class="capture" id="captured-${c.holder}">No delayed write captured.</div><p class="last-result" id="result-${c.holder}"></p><footer><button data-action="retry">Retry last request</button></footer>`;
+  section.dataset.client = c.holder;
+  section.innerHTML = `<div class="client-head"><h2>Client ${c.holder}</h2><span class="token" id="token-${c.holder}">NO TOKEN</span></div><div class="lease-actions"><label>Lease<select id="ttl-${c.holder}"><option value="1000">1 second</option><option value="5000" selected>5 seconds</option><option value="15000">15 seconds</option><option value="60000">60 seconds</option></select></label><button data-action="acquire">Acquire</button><button data-action="renew">Renew</button><button data-action="release">Release</button></div><textarea id="value-${c.holder}" aria-label="Client ${c.holder} document value" maxlength="2048">Document revision from Client ${c.holder}.</textarea><div class="version-controls"><label>Expected version<input id="expected-${c.holder}" type="number" min="0" max="1000000000" value="0" aria-label="Client ${c.holder} expected version"></label><button data-action="sync">Use current version</button></div><div class="write-actions"><button data-action="write">Write now</button><button data-action="capture">Capture delayed write</button><button data-action="deliver">Deliver captured</button></div><div class="capture" id="captured-${c.holder}">No delayed write captured.</div><p class="last-result" id="result-${c.holder}"></p><footer><button data-action="retry">Retry last request</button></footer>`;
   for (const b of section.querySelectorAll("[data-action]"))
     b.onclick = () => act(c, b.dataset.action);
   c.section = section;
@@ -65,8 +66,21 @@ function countdown() {
     snapshot.remaining_ms - (performance.now() - received),
   );
   $("remaining").textContent = (remaining / 1000).toFixed(1) + "s";
-  $("lease-state").textContent =
-    snapshot.state.holder && remaining > 0 ? "LEASE ACTIVE" : "AVAILABLE";
+  const active = Boolean(snapshot.state.holder && remaining > 0);
+  $("lease-state").textContent = active
+    ? "ACTIVE · ESTIMATE"
+    : snapshot.state.holder
+      ? "EXPIRED · ESTIMATE"
+      : "NO LEASE";
+  document.querySelector(".authority").dataset.active = String(active);
+  $("lease-fill").style.width =
+    `${snapshot.remaining_ms > 0 ? (100 * remaining) / snapshot.remaining_ms : 0}%`;
+  for (const c of clients)
+    c.section.dataset.owner = String(
+      active &&
+        snapshot.state.holder === c.holder &&
+        snapshot.state.fence === c.token,
+    );
 }
 setInterval(countdown, 200);
 function render() {

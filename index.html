@@ -13,13 +13,6 @@
       ><button id="export">Export evidence ↗</button>
     </header>
     <main>
-      <section class="intro">
-        <h1>One owner.<br /><span>No late arrivals.</span></h1>
-        <p>
-          A lease expires. Its token never returns.<br />Watch a delayed writer
-          meet the fence.
-        </p>
-      </section>
       <section class="resource-bar">
         <label>Resource<select id="resources"></select></label
         ><button id="refresh">Refresh state</button>
@@ -43,6 +36,9 @@
         <div><small>LEASE HOLDER</small><strong id="holder">—</strong></div>
         <div>
           <small>TIME REMAINING*</small><strong id="remaining">—</strong>
+          <div class="lease-track" aria-hidden="true">
+            <div id="lease-fill"></div>
+          </div>
         </div>
         <div>
           <small>DOCUMENT VERSION</small><strong id="version">0</strong>
@@ -62,8 +58,8 @@
       <section class="ledger">
         <div class="section-head">
           <div>
-            <small>THE DURABLE RECORD</small>
-            <h2>Every attempt leaves a receipt.</h2>
+            <small>RECEIPT HISTORY</small>
+            <h2>Command receipts</h2>
           </div>
           <span id="audit"></span>
         </div>
@@ -140,9 +136,7 @@
       </section>
     </main>
     <footer>
-      Lease Beacon / Fence the write, not just the intention.<span
-        >SQLite · real HTTP · no external services</span
-      >
+      Lease Beacon<span>SQLite · real HTTP · no external services</span>
     </footer>
   </body>
 </html>

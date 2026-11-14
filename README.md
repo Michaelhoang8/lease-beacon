@@ -4,6 +4,8 @@ A local coordination workbench with expiring leases, monotonically increasing fe
 
 ![A delayed writer rejected after takeover](docs/workbench.png)
 
+The shared authority panel sits above two independently colored client consoles. The current token holder is highlighted while the browser estimates an active lease; the countdown bar shows the fraction of remaining time from the most recent snapshot. Expiry is explicitly labeled as an estimate. Reduced-motion settings disable the beacon pulse and bar transition.
+
 ## Run
 
 Python 3.10+; Node 22+ only for JavaScript syntax checks. No runtime packages or external services.
